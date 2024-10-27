@@ -29,7 +29,9 @@ void handle_client(task_args_t* args) {
         ssize_t bytes_read = read(client_fd, buffer, BUFFER_SIZE);
 
         if (bytes_read <= 0) continue;
-        buffer[bytes_read - 2] = '\0'; // null terminating buffer, ignoring the \r \n in the end
+
+        // null terminate buffer when return (\r) is encountered
+        buffer[strcspn(buffer, "\r")] = 0; 
 
         if (strcmp(buffer, "quit") == 0) {
             printf("Client %d disconnected.\n", client_no);

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/epoll.h>
@@ -73,19 +74,26 @@ void initialize_epoll_server(int server_fd, int *epoll_fd_ptr, struct epoll_even
  * @note Frees the `args` structure at the end, but given the infinite loop, this
  *       cleanup may not be reached unless the loop is externally interrupted.
  */
-void run_event_loop(EventLoopArgs *args) {
+void *run_event_loop(void *arg) {
+    EventLoopArgs *args = (EventLoopArgs *)arg;
+
     while (true) {
         int num_events = epoll_wait(
             args->epoll_fd, 
             args->events, 
             args->max_events, 
-            -1
+            5000
         );
 
         if (num_events < 0) {
             perror("epoll_wait failed");
             free(args);
             exit(EXIT_FAILURE);
+        } 
+        
+        else if (num_events == 0 && *args->terminate_sig == 1) {
+            free(args);
+            break;
         }
 
         for (int i = 0; i < num_events; i++) {
@@ -102,6 +110,4 @@ void run_event_loop(EventLoopArgs *args) {
             }
         }
     }
-
-    free(args);
 }

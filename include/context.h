@@ -17,6 +17,7 @@ typedef struct {
     struct sockaddr_in address;
 
     pthread_t event_loop_thread;
+    int terminate_event_loop;
 } Context;
 
 #endif

@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "../include/context.h"
 #include "../include/sig_handler.h"
@@ -10,20 +12,25 @@ void set_context(Context *context) {
 }
 
 void handle_sigint(int sig) {
+    ctx->terminate_event_loop = 1;
+
     close(ctx->epoll_fd);
-
-    for (int i=0; i < MAX_CLIENTS; i++) {
-        if (ctx->client_sockets[i] != -1) {
-            close(ctx->client_sockets[i]);
-            ctx->client_sockets[i] = -1;
-        }
-    }
-
     close(ctx->server_fd);
+
+    pthread_join(ctx->event_loop_thread, NULL);
+    
     free(ctx);
     exit(EXIT_SUCCESS);
 }
 
 void handle_sigsegv(int sig) {
+    ctx->terminate_event_loop = 1;
 
+    close(ctx->epoll_fd);
+    close(ctx->server_fd);
+
+    pthread_cancel(ctx->event_loop_thread);
+    
+    free(ctx);
+    exit(EXIT_SUCCESS);
 }

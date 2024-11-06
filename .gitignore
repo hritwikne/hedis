@@ -53,3 +53,5 @@ dkms.conf
 
 # VSCode files
 .vscode/
+
+tasks.txt

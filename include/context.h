@@ -16,8 +16,9 @@ typedef struct {
     int server_fd;
     struct sockaddr_in address;
 
+    int terminate_sig;
     pthread_t event_loop_thread;
-    int terminate_event_loop;
+
 } Context;
 
 #endif

@@ -11,8 +11,16 @@
 
 static Context *ctx = NULL;
 
+void print_startup_info(int port) {
+    printf("\nHEDIS v0.1\n");
+    printf("Listening on port %d..\n", port);
+    printf(
+        "Press Ctrl+C once to exit.\n"
+        "Note: the program may take up to 5 seconds for cleanup to shut down completely.\n\n"
+    );
+}
+
 void create_event_loop_thread() {
-    // building some arguments to pass to eventloop function
     EventLoopArgs *args = malloc(sizeof(EventLoopArgs));
     
     if (args == NULL) {
@@ -26,9 +34,8 @@ void create_event_loop_thread() {
     args->max_events = MAX_EVENTS;
     args->address = &ctx->address;
     args->addrlen = &ctx->addrlen;
-    args->terminate_sig = &ctx->terminate_event_loop;
+    args->terminate_sig = &ctx->terminate_sig;
 
-    // thread creation
     int thread_creation_res = pthread_create(
         &ctx->event_loop_thread, 
         NULL, 
@@ -57,20 +64,15 @@ void start_server(int port) {
 
     ctx->server_fd = create_socket();
     ctx->addrlen = sizeof(ctx->address);
-    ctx->terminate_event_loop = 0;
+    ctx->terminate_sig = 0;
 
     set_socket_options(ctx->server_fd);
     bind_socket(ctx->server_fd, &ctx->address, port);
     listen_for_connections(ctx->server_fd);
-
-    printf("\nHEDIS v0.1\n");
-    printf("Listening on port %d..\n", port);
-    printf(
-        "Press Ctrl+C once to exit.\n"
-        "Note: the program may take up to 5 seconds for cleanup to shut down completely.\n\n"
-    );
+    print_startup_info(port);
 
     initialize_epoll_server(ctx->server_fd, &ctx->epoll_fd, &ctx->event);
     create_event_loop_thread();
+
     pthread_join(ctx->event_loop_thread, NULL);
 }

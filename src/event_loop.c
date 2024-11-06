@@ -98,13 +98,17 @@ void *run_event_loop(void *arg) {
 
         for (int i = 0; i < num_events; i++) {
             if (args->events[i].data.fd == args->server_fd) {
+                // the event is on server_fd
                 accept_connections(
                     args->server_fd,
                     args->epoll_fd,
                     args->address,
                     args->addrlen
                 );
-            } else {
+            } 
+            
+            else {
+                // the event is on client_fd
                 int client_fd = args->events[i].data.fd;
                 accept_messages(client_fd);
             }

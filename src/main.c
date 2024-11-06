@@ -1,7 +1,7 @@
 #include "../include/server.h"
+#define PORT 3000
 
 int main() {
-    int port = 3000;
-    start_server(port);
+    start_server(PORT);
     return 0;
 }

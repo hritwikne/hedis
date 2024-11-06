@@ -2,6 +2,8 @@
 #define CONTEXT_H
 
 #define MAX_EVENTS 10
+#define COMPACTION_INTERVAL_SECONDS 3600
+#define MEM_POOL_SIZE_MB 1024 * 1024 // 1mb
 
 #include <pthread.h>
 #include <sys/epoll.h>
@@ -19,6 +21,7 @@ typedef struct {
     int terminate_sig;
     pthread_t event_loop_thread;
 
+    pthread_t compaction_thread;
 } Context;
 
 #endif

@@ -6,6 +6,7 @@
 #include "../include/socket.h"
 #include "../include/server.h"
 #include "../include/context.h"
+#include "../include/mem_utils.h"
 #include "../include/event_loop.h"
 #include "../include/sig_handler.h"
 
@@ -51,6 +52,7 @@ void create_event_loop_thread() {
 }
 
 void start_server(int port) {
+    init_allocator();
     ctx = malloc(sizeof(Context));
 
     if (ctx == NULL) {

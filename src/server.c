@@ -51,10 +51,24 @@ void create_event_loop_thread() {
     }
 }
 
+void create_compaction_thread() {
+    int thread_creation_res = pthread_create(
+        &ctx->compaction_thread, 
+        NULL, 
+        compact_memory, 
+        &ctx->terminate_sig
+    );
+
+    if (thread_creation_res < 0) {
+        perror("Failed to create a thread for compaction process");
+        exit(EXIT_FAILURE);
+    }
+}
+
 void start_server(int port) {
     init_allocator();
     ctx = malloc(sizeof(Context));
-
+    
     if (ctx == NULL) {
         perror("Failed to allocate memory for Context");
         exit(EXIT_FAILURE);
@@ -63,6 +77,8 @@ void start_server(int port) {
     set_context(ctx); // in sig_handler file
     signal(SIGINT, handle_sigint);
     signal(SIGSEGV, handle_sigsegv);
+    
+    create_compaction_thread();
 
     ctx->server_fd = create_socket();
     ctx->addrlen = sizeof(ctx->address);

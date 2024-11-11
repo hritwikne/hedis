@@ -9,6 +9,9 @@
 #include <sys/epoll.h>
 #include <netinet/in.h>
 
+#include "hash_table.h"
+#include "priority_queue.h"
+
 typedef struct {
     int epoll_fd;
     struct epoll_event event;
@@ -20,8 +23,11 @@ typedef struct {
 
     int terminate_sig;
     pthread_t event_loop_thread;
-
     pthread_t compaction_thread;
+    pthread_t auto_deletion_thread;
+
+    Hash_Table ht;
+    Priority_Queue pq;
 } Context;
 
 #endif

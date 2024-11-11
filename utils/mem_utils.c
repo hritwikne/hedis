@@ -7,12 +7,9 @@
 #include "../include/context.h"
 #include "../include/mem_utils.h"
 
-static Block *free_list_head = NULL; 
-static char memory_pool[MEM_POOL_SIZE_MB]; // char = untyped, represent single byte of memory
-
+static Block *free_list_head = NULL;
+static char memory_pool[MEM_POOL_SIZE_MB];
 static pthread_mutex_t mem_pool_mutex = PTHREAD_MUTEX_INITIALIZER;
-// PTHREAD_MUTEX_INITIALIZER is a macro that initializes the mutex at compile-time, 
-// so it’s ready for use as soon as the program starts.
 
 void init_allocator() {
     free_list_head = (Block*)memory_pool;
@@ -25,15 +22,6 @@ size_t align(size_t size) {
     return (size + 7) & ~7;
 }
 
-// given pointer to a block and required space from it,
-// convert remaining space to a new block
-Block *split_block(Block *block, size_t size) {
-    Block *new_block = (Block*)((char*)block + size);
-    new_block->size = block->size - size;
-    new_block->next = block->next;
-    return new_block;
-}
-
 void merge_adjacent_free_blocks() {
     Block *block = free_list_head;
 
@@ -42,6 +30,7 @@ void merge_adjacent_free_blocks() {
         char *next_block_start = (char*)block->next;
 
         if (curr_block_end == next_block_start) {
+            // means they're adjacent
             block->size += sizeof(Block) + block->next->size;
             block->next = block->next->next;
         } else {
@@ -65,9 +54,11 @@ void *allocate(size_t size) {
             continue;
         }
 
-        // is there gonna be leftover space to store at least Block header?
+        // is there gonna be leftover space to store at least Block header? then split it
         if (block->size > (size + sizeof(Block))) {
-            Block *new_block = split_block(&block, size + sizeof(Block));
+            Block *new_block = (Block*)((char*)block + size + sizeof(Block));
+            new_block->size = block->size - size - sizeof(Block);
+            new_block->next = block->next;
 
             block->size = size;
             block->next = new_block;
@@ -93,25 +84,25 @@ void *allocate(size_t size) {
 
 void deallocate(void *ptr) {
     if (!ptr) return;
-
     pthread_mutex_lock(&mem_pool_mutex);
 
     Block *block = (Block*)((char*)ptr - sizeof(Block));
     block->next = free_list_head;
-    free_list_head = block->next;
+    free_list_head = block;
 
     merge_adjacent_free_blocks();
     pthread_mutex_unlock(&mem_pool_mutex);
 }
 
 void *compact_memory(void *arg) {
+    int *terminate_sig = (int*)arg;
+
     while (1) {
-        sleep(COMPACTION_INTERVAL_SECONDS);
-        
+        if (*terminate_sig == 1) break;
         pthread_mutex_lock(&mem_pool_mutex);
 
-        char *current = memory_pool; // init to start of mem pool
-        Block *free_block = free_list_head; // start of free_list
+        char *current = memory_pool;
+        Block *free_block = free_list_head;
 
         // move all free blocks to start of mem pool
         while (free_block) {
@@ -124,10 +115,11 @@ void *compact_memory(void *arg) {
             free_block = free_block->next;
         }
 
-        free_list_head = memory_pool;
+        free_list_head = (Block*)memory_pool;
         merge_adjacent_free_blocks();
 
         pthread_mutex_unlock(&mem_pool_mutex);
+        sleep(COMPACTION_INTERVAL_SECONDS);
     }
 
     return NULL;

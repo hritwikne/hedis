@@ -5,15 +5,16 @@
 #include <pthread.h>
 
 #include "../include/context.h"
+#include "../include/constants.h"
 #include "../include/mem_utils.h"
 
 static Block *free_list_head = NULL;
-static char memory_pool[MEM_POOL_SIZE_MB];
+static char memory_pool[MEM_POOL_SIZE_BYTES];
 static pthread_mutex_t mem_pool_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void init_allocator() {
     free_list_head = (Block*)memory_pool;
-    free_list_head->size = (MEM_POOL_SIZE_MB - sizeof(Block));
+    free_list_head->size = (MEM_POOL_SIZE_BYTES - sizeof(Block));
     free_list_head->next = NULL;
 }
 
@@ -39,7 +40,7 @@ void merge_adjacent_free_blocks() {
     }
 }
 
-void *allocate(size_t size) {
+void* allocate(size_t size) {
     size = align(size);
     pthread_mutex_lock(&mem_pool_mutex);
     
@@ -94,11 +95,13 @@ void deallocate(void *ptr) {
     pthread_mutex_unlock(&mem_pool_mutex);
 }
 
-void *compact_memory(void *arg) {
-    int *terminate_sig = (int*)arg;
+void* reallocate(void *ptr, size_t size) {
+    return NULL;
+}
 
+void *compact_memory(void *arg) {
     while (1) {
-        if (*terminate_sig == 1) break;
+        sleep(COMPACTION_INTERVAL_SECONDS);
         pthread_mutex_lock(&mem_pool_mutex);
 
         char *current = memory_pool;
@@ -119,7 +122,6 @@ void *compact_memory(void *arg) {
         merge_adjacent_free_blocks();
 
         pthread_mutex_unlock(&mem_pool_mutex);
-        sleep(COMPACTION_INTERVAL_SECONDS);
     }
 
     return NULL;

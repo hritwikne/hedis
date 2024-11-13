@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <sys/epoll.h>
 
 #include "../include/event_loop.h"
@@ -77,7 +76,7 @@ void initialize_epoll_server(int server_fd, int *epoll_fd_ptr, struct epoll_even
 void *run_event_loop(void *arg) {
     EventLoopArgs *args = (EventLoopArgs *)arg;
 
-    while (true) {
+    while (1) {
         int num_events = epoll_wait(
             args->epoll_fd, 
             args->events, 

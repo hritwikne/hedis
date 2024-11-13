@@ -19,7 +19,12 @@ void handle_sigint(int sig) {
     close(ctx->server_fd);
 
     pthread_join(ctx->event_loop_thread, NULL);
+    // have to close client sockets also TODO
     pthread_cancel(ctx->compaction_thread);
+    pthread_join(ctx->compaction_thread, NULL);
+
+    pthread_cancel(ctx->expiry_monitor_thread);
+    pthread_join(ctx->expiry_monitor_thread, NULL);
     
     free(ctx);
     cleanup_allocator();
@@ -32,10 +37,15 @@ void handle_sigsegv(int sig) {
     close(ctx->epoll_fd);
     close(ctx->server_fd);
 
-    // todo: cancelling thread leads to memory leaks, handle this?
-    // have to close client sockets and free (args) in event loop
+    // have to close client sockets also TODO
     pthread_cancel(ctx->event_loop_thread); 
+    pthread_join(ctx->event_loop_thread, NULL);
+
     pthread_cancel(ctx->compaction_thread);
+    pthread_join(ctx->compaction_thread, NULL);
+
+    pthread_cancel(ctx->expiry_monitor_thread);
+    pthread_join(ctx->expiry_monitor_thread, NULL);
     
     free(ctx);
     cleanup_allocator();

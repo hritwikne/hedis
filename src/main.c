@@ -1,5 +1,5 @@
 #include "../include/server.h"
-#define PORT 3000
+#include "../include/constants.h"
 
 int main() {
     start_server(PORT);

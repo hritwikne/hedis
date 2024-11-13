@@ -6,9 +6,12 @@
 #include "../include/socket.h"
 #include "../include/server.h"
 #include "../include/context.h"
+#include "../include/constants.h"
 #include "../include/mem_utils.h"
 #include "../include/event_loop.h"
+#include "../include/hash_table.h"
 #include "../include/sig_handler.h"
+#include "../include/priority_queue.h"
 
 static Context *ctx = NULL;
 
@@ -56,7 +59,7 @@ void create_compaction_thread() {
         &ctx->compaction_thread, 
         NULL, 
         compact_memory, 
-        &ctx->terminate_sig
+        NULL
     );
 
     if (thread_creation_res < 0) {
@@ -65,32 +68,61 @@ void create_compaction_thread() {
     }
 }
 
-void start_server(int port) {
-    init_allocator();
+void context_init() {
     ctx = malloc(sizeof(Context));
-    
+
     if (ctx == NULL) {
         perror("Failed to allocate memory for Context");
         exit(EXIT_FAILURE);
     }
 
     set_context(ctx); // in sig_handler file
-    signal(SIGINT, handle_sigint);
-    signal(SIGSEGV, handle_sigsegv);
-    
-    create_compaction_thread();
+}
 
+void create_expiry_monitor_thread() {
+    int thread_creation_res = pthread_create(
+        &ctx->expiry_monitor_thread, 
+        NULL, 
+        expiry_monitor, 
+        &ctx->table
+    );
+
+    if (thread_creation_res < 0) {
+        perror("Failed to create a thread for Expiry Monitor");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void start_server(int port) {
+    // set up custom mem allocator
+    init_allocator();
+    create_compaction_thread();
+    
+    // set up app state variables
+    context_init();
+    ctx->terminate_sig = 0;
     ctx->server_fd = create_socket();
     ctx->addrlen = sizeof(ctx->address);
-    ctx->terminate_sig = 0;
 
+    // register signal handlers for crashes    
+    signal(SIGINT, handle_sigint);
+    signal(SIGSEGV, handle_sigsegv);
+
+    // setup data structures and related thread
+    ctx->table = create_table(HASH_TABLE_SIZE);
+    create_expiry_monitor_thread();
+
+    // bind and listen to a socket
     set_socket_options(ctx->server_fd);
     bind_socket(ctx->server_fd, &ctx->address, port);
     listen_for_connections(ctx->server_fd);
     print_startup_info(port);
 
+    // event loop setup for client conns
     initialize_epoll_server(ctx->server_fd, &ctx->epoll_fd, &ctx->event);
     create_event_loop_thread();
 
     pthread_join(ctx->event_loop_thread, NULL);
+    pthread_join(ctx->compaction_thread, NULL);
+    pthread_join(ctx->expiry_monitor_thread, NULL);
 }

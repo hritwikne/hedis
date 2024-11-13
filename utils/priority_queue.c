@@ -2,23 +2,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../include/hash_table.h"
 #include "../include/priority_queue.h"
 
 Priority_Queue* create_pq(size_t initial_capacity) {
     Priority_Queue *pq = malloc(sizeof(Priority_Queue));
-    pq->heap = malloc(initial_capacity * sizeof(Priority_Queue *));
+    
     pq->size = 0;
     pq->capacity = initial_capacity;
+    pq->heap = malloc(initial_capacity * sizeof(Priority_Queue *));
+    pthread_mutex_init(&pq->mutex, NULL);
+
     return pq;
 }
 
 void destroy_pq(Priority_Queue *pq) {
     if (pq == NULL) return;
+    
+    pthread_mutex_destroy(&pq->mutex);
     free(pq->heap);
     free(pq);
 }
 
 void heapify(Priority_Queue *pq, size_t index) {
+    if (pq == NULL) return;
     size_t smallest = index;
     size_t left = (2 * index + 1);
     size_t right = (2 * index + 2);
@@ -41,7 +48,10 @@ void heapify(Priority_Queue *pq, size_t index) {
     }
 }
 
-void push(Priority_Queue *pq, Node *node) {
+void push_pq(Priority_Queue *pq, Node *node) {
+    if (pq == NULL) return;
+    pthread_mutex_lock(&pq->mutex);
+
     if (pq->size >= pq->capacity) {
         pq->capacity *= 2;
         pq->heap = realloc(pq->heap, pq->capacity * sizeof(Node *));
@@ -66,25 +76,38 @@ void push(Priority_Queue *pq, Node *node) {
         } 
         else break;
     }
+
+    pthread_mutex_unlock(&pq->mutex);
 }
 
-Node* pop(Priority_Queue *pq) {
-    if (pq->size == 0) return NULL;
+Node* pop_pq(Priority_Queue *pq) {
+    if (pq == NULL || pq->size == 0) return NULL;
+    pthread_mutex_lock(&pq->mutex);
 
     Node *root = pq->heap[0];
     pq->heap[0] = pq->heap[pq->size-1];
     pq->size--;
 
     heapify(pq, 0);
+    pthread_mutex_unlock(&pq->mutex);
+
     return root;
 }
 
-Node* peek(Priority_Queue *pq) {
-    if (pq->size == 0) return NULL;
-    return pq->heap[0];
+Node* peek_pq(Priority_Queue *pq) {
+    if (pq == NULL) return NULL;
+
+    pthread_mutex_lock(&pq->mutex);
+    Node *root = (pq->size > 0) ? pq->heap[0] : NULL;
+    pthread_mutex_unlock(&pq->mutex);
+
+    return root;
 }
 
-void delete_node_from_pq(Priority_Queue *pq, Node* node) {
+void delete_node_pq(Priority_Queue *pq, Node* node) {
+    if (pq == NULL || node == NULL) return;
+    pthread_mutex_lock(&pq->mutex);
+
     for (size_t i=0; i < pq->size; i++) {
         if (pq->heap[i] == node) {
             pq->heap[i] = pq->heap[pq->size-1];
@@ -93,4 +116,6 @@ void delete_node_from_pq(Priority_Queue *pq, Node* node) {
             break;
         }
     }
+
+    pthread_mutex_unlock(&pq->mutex);
 }

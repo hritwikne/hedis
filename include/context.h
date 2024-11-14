@@ -3,10 +3,7 @@
 
 #define MAX_EVENTS 10
 
-#include <pthread.h>
-#include <sys/epoll.h>
-#include <netinet/in.h>
-
+#include "global_includes.h"
 #include "hash_table.h"
 #include "priority_queue.h"
 

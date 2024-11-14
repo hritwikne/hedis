@@ -1,19 +1,17 @@
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../include/utility.h"
-#include "../include/constants.h"
+#include "priority_queue.h"
 #include "../include/hash_table.h"
-#include "../include/priority_queue.h"
 
+void heapify_pq(Priority_Queue *pq) {
+    lock(pq->mutex);
+    heapify(pq, 0);
+    unlock(pq->mutex);
+}
 
 Hash_Table* create_table(size_t size) {
     Hash_Table *table = malloc(sizeof(Hash_Table));
 
     if (table == NULL) {
-        perror("Failed to allocate memory for hash table");
+        perror("Failed to allocate memory for Hash_Table");
         exit(EXIT_FAILURE);
     }
 
@@ -27,18 +25,14 @@ Hash_Table* create_table(size_t size) {
     return table;
 }
 
-
-void insert(Hash_Table *table, const char *key, void *value) {
-    pthread_mutex_lock(&table->mutex);
+void ht_insert(Hash_Table *table, const char *key, void *value) {
+    lock(table->mutex);
     Node *node = get_node(table, key);
 
     // if key already exist, overwrite its value
     if (node != NULL) {
         node->freq += 1;
-        
-        pthread_mutex_lock(&table->freq_pq->mutex);
-        heapify(table->freq_pq, 0);
-        pthread_mutex_unlock(&table->freq_pq->mutex);
+        heapify_pq(table->freq_pq);
 
         node->has_ttl = 0;
         delete_node_pq(table->ttl_pq, node);
@@ -68,11 +62,10 @@ void insert(Hash_Table *table, const char *key, void *value) {
         table->count++;
     }
 
-    pthread_mutex_unlock(&table->mutex);
+    unlock(table->mutex);
 }
 
-
-Node *get_node(Hash_Table *table, const char *key) {
+Node* get_node(Hash_Table *table, const char *key) {
     unsigned int index = hash(key, table->size);
     Node *node = table->buckets[index];
 
@@ -86,16 +79,14 @@ Node *get_node(Hash_Table *table, const char *key) {
     return NULL;
 }
 
-
 int is_expired(Node *node) {  
     if (!node->has_ttl) return 0;
     return time(NULL) > node->ttl;
 }
 
-// TODO also pop node from pqs
-void delete(Hash_Table *table, const char *key) {
+void ht_delete(Hash_Table *table, const char *key) {
     if (table == NULL || key == NULL) return;
-    pthread_mutex_lock(&table->mutex);
+    lock(table->mutex);
 
     unsigned int index = hash(key, table->size);
     Node *node = table->buckets[index];
@@ -108,7 +99,9 @@ void delete(Hash_Table *table, const char *key) {
             continue;
         }
 
-        // Node found; update pointers to remove it from the list
+        delete_node_pq(table->ttl_pq, node);
+        delete_node_pq(table->freq_pq, node);
+
         if (prev) {
             prev->next = node->next;
         } else {
@@ -122,54 +115,48 @@ void delete(Hash_Table *table, const char *key) {
         break;
     }
 
-    pthread_mutex_unlock(&table->mutex);
+    unlock(table->mutex);
     return;
 }
 
-
-void *get(Hash_Table *table, const char *key) {
+void* get(Hash_Table *table, const char *key) {
     if (table == NULL || key == NULL) return NULL;
-    pthread_mutex_lock(&table->mutex);
+    lock(table->mutex);
 
     Node *node = get_node(table, key);
     if (node == NULL) {
-        pthread_mutex_unlock(&table->mutex);
+        unlock(table->mutex);
         return NULL;  // Key not found
     }
 
     // Check if the node is expired and delete if necessary
     if (is_expired(node)) {
-        pthread_mutex_unlock(&table->mutex);
-        delete(table, key);
+        unlock(table->mutex);
+        ht_delete(table, key);
         return NULL;
     }
 
     node->freq += 1;
-    pthread_mutex_unlock(&table->mutex);
+    unlock(table->mutex);
 
-    // Update the frequency priority queue
-    pthread_mutex_lock(&table->freq_pq->mutex);
-    heapify(table->freq_pq, 0);
-    pthread_mutex_unlock(&table->freq_pq->mutex);
-
+    heapify_pq(table->freq_pq);
     return node->value;
 }
-
 
 // return 0 if success, -1 if key not found
 int set_ttl(Hash_Table *table, const char *key, int seconds) {
     if (table == NULL || key == NULL) return -1;
-    pthread_mutex_lock(&table->mutex);
+    lock(table->mutex);
 
     Node *node = get_node(table, key);
     if (node == NULL) {
-        pthread_mutex_unlock(&table->mutex);
+        unlock(table->mutex);
         return -1;  // Key not found
     }
 
     if (is_expired(node)) {
-        delete(table, key);
-        pthread_mutex_unlock(&table->mutex);
+        unlock(table->mutex);
+        ht_delete(table, key);
         return -1;  // Node was expired and deleted
     }
 
@@ -177,46 +164,50 @@ int set_ttl(Hash_Table *table, const char *key, int seconds) {
     node->ttl = time(NULL) + seconds;
     node->freq += 1;
 
-    push_pq(table->ttl_pq, node);
-    pthread_mutex_unlock(&table->mutex);
+    // already had some ttl? heapify since we updated ttl
+    if (node_exists_pq(table->ttl_pq, node)) {
+        heapify_pq(table->ttl_pq);
+    } else {
+        // had no ttl, so create now
+        push_pq(table->ttl_pq, node);
+    }
 
-    pthread_mutex_lock(&table->freq_pq->mutex);
-    heapify(table->freq_pq, 0);
-    pthread_mutex_unlock(&table->freq_pq->mutex);
-
+    unlock(table->mutex);
+    heapify_pq(table->freq_pq);
     return 0;
 }
 
-
 int get_ttl(Hash_Table *table, const char *key) {
     if (table == NULL || key == NULL) return -2;
-    pthread_mutex_lock(&table->mutex); 
+    lock(table->mutex); 
 
     Node *node = get_node(table, key);
     if (node == NULL) {
-        pthread_mutex_unlock(&table->mutex);
+        unlock(table->mutex);
         return -2;  // Key not found
     } 
 
+    if (is_expired(node)) {
+        unlock(table->mutex);
+        ht_delete(table, key);
+        return -1;  // Node was expired and deleted
+    }
+
     if (!node->has_ttl) {
-        pthread_mutex_unlock(&table->mutex);
+        unlock(table->mutex);
         return -1;  // Node does not have a TTL
     }
 
     node->freq += 1;
-    pthread_mutex_unlock(&table->mutex);
+    unlock(table->mutex);
 
-    pthread_mutex_lock(&table->freq_pq->mutex);
-    heapify(table->freq_pq, 0);
-    pthread_mutex_unlock(&table->freq_pq->mutex);
-
+    heapify_pq(table->freq_pq);
     return node->ttl;
 }
 
-
 void destroy_ht(Hash_Table *table) {
     if (table == NULL) return;
-    pthread_mutex_lock(&table->mutex);
+    lock(table->mutex);
 
     // Free each bucket's linked list of nodes
     for (size_t i = 0; i < table->size; i++) {
@@ -231,24 +222,9 @@ void destroy_ht(Hash_Table *table) {
 
     free(table->buckets);
 
-    pthread_mutex_unlock(&table->mutex);
+    unlock(table->mutex);
     pthread_mutex_destroy(&table->mutex);
     free(table);
-}
-
-
-void* expiry_monitor(void *arg) {
-    Hash_Table *table = (Hash_Table *)arg;
-    Priority_Queue *pq = table->ttl_pq;
-    
-    while (1) {
-        sleep(EXPIRY_MONITOR_INTERVAL_SECONDS);
- 
-        while (is_expired(peek_pq(pq))) {
-            Node *root = pop_pq(pq);
-            delete(table, root->key);
-        }
-    }
 }
 
 void* expiry_monitor(void *arg) {
@@ -260,15 +236,18 @@ void* expiry_monitor(void *arg) {
     
     while (1) {
         sleep(EXPIRY_MONITOR_INTERVAL_SECONDS); 
-        pthread_mutex_lock(&table->mutex);
+        lock(table->mutex);
 
         // Check if the top item in the TTL priority queue is expired
         while (pq->size > 0 && is_expired(peek_pq(pq))) {
-            Node *root = pop_pq(pq);
-            if (root != NULL) delete(table, root->key);
+            Node *expired_node = pop_pq(pq);
+            if (expired_node != NULL) {
+                delete_node_pq(table->freq_pq, expired_node);
+                ht_delete(table, expired_node->key);
+            }
         }
 
-        pthread_mutex_unlock(&table->mutex);
+        unlock(table->mutex);
     }
 
     return NULL;

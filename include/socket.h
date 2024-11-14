@@ -1,7 +1,7 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <netinet/in.h>
+#include "global_includes.h"
 
 int create_socket();
 void set_socket_options(int server_fd);

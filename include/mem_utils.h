@@ -1,7 +1,9 @@
 #ifndef MEM_UTILS_H
 #define MEM_UTILS_H
 
-#include <stdlib.h>
+#include "global_includes.h"
+#include "../include/context.h"
+#include "../include/constants.h"
 
 typedef struct Block {
     size_t size;

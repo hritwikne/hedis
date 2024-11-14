@@ -1,7 +1,8 @@
 #ifndef SIG_HANDLER_H
 #define SIG_HANDLER_H
 
-#include "../include/context.h"
+#include "global_includes.h"
+#include "context.h"
 
 void handle_sigint(int sig);
 void handle_sigsegv(int sig);

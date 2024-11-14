@@ -1,7 +1,7 @@
 #ifndef EVENT_LOOP_H
 #define EVENT_LOOP_H
 
-#include <netinet/in.h>
+#include "global_includes.h"
 
 typedef struct {
     int server_fd;

@@ -1,11 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-
-#include "../include/context.h"
-#include "../include/constants.h"
 #include "../include/mem_utils.h"
 
 static Block *free_list_head = NULL;
@@ -95,6 +87,7 @@ void deallocate(void *ptr) {
     pthread_mutex_unlock(&mem_pool_mutex);
 }
 
+// YET TO IMPLEMENT
 void* reallocate(void *ptr, size_t size) {
     return NULL;
 }

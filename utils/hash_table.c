@@ -83,8 +83,8 @@ int is_expired(Node *node) {
     return time(NULL) > node->ttl;
 }
 
-void ht_delete(Hash_Table *table, const char *key) {
-    if (table == NULL || key == NULL) return;
+int ht_delete(Hash_Table *table, const char *key) {
+    if (table == NULL || key == NULL) return 0;
     lock(table->mutex);
 
     unsigned int index = hash(key, table->size);
@@ -108,6 +108,7 @@ void ht_delete(Hash_Table *table, const char *key) {
         }
 
         free(node->key);
+        free(node->value);
         free(node);
         node = NULL;
         table->count--;
@@ -115,7 +116,7 @@ void ht_delete(Hash_Table *table, const char *key) {
     }
 
     unlock(table->mutex);
-    return;
+    return 1;
 }
 
 void* get(Hash_Table *table, const char *key) {
@@ -142,21 +143,21 @@ void* get(Hash_Table *table, const char *key) {
     return node->value;
 }
 
-// return 0 if success, -1 if key not found
+// return 1 if success, 0 if key not found
 int set_ttl(Hash_Table *table, const char *key, int seconds) {
-    if (table == NULL || key == NULL) return -1;
+    if (table == NULL || key == NULL) return 0;
     lock(table->mutex);
 
     Node *node = get_node(table, key);
     if (node == NULL) {
         unlock(table->mutex);
-        return -1;  // Key not found
+        return 0;  // Key not found
     }
 
     if (is_expired(node)) {
         unlock(table->mutex);
         ht_delete(table, key);
-        return -1;  // Node was expired and deleted
+        return 0;  // Node was expired and deleted
     }
 
     node->has_ttl = 1;
@@ -173,7 +174,7 @@ int set_ttl(Hash_Table *table, const char *key, int seconds) {
 
     unlock(table->mutex);
     heapify_pq(table->freq_pq);
-    return 0;
+    return 1;
 }
 
 int get_ttl(Hash_Table *table, const char *key) {
@@ -189,7 +190,7 @@ int get_ttl(Hash_Table *table, const char *key) {
     if (is_expired(node)) {
         unlock(table->mutex);
         ht_delete(table, key);
-        return -1;  // Node was expired and deleted
+        return -2;  // Node was expired and deleted
     }
 
     if (!node->has_ttl) {

@@ -5,7 +5,7 @@
 #include "constants.h"
 #include "global_includes.h"
 
+void *run_event_loop();
 void init_epoll_server();
-void *run_event_loop(void *arg);
 
 #endif

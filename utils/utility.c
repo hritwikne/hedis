@@ -26,10 +26,38 @@ void swap_nodes(Node *node1, Node *node2) {
     node2 = temp;
 }
 
-void spawn_thread(pthread_t thread, void *worker) {
-    int thread_creation_res = pthread_create(&thread, NULL, worker, NULL);
+void spawn_thread(pthread_t *thread, void *worker) {
+    int thread_creation_res = pthread_create(thread, NULL, worker, NULL);
     if (thread_creation_res < 0) {
         perror("Failed to spawn a thread.");
         exit(EXIT_FAILURE);
     }
+}
+
+void to_uppercase(char *str) {
+    if (str == NULL) return;
+
+    while (*str) {
+        *str = toupper((unsigned char)*str);
+        str++;
+    }
+}
+
+int is_valid_integer(const char *str) {
+    if (str == NULL || *str == '\0') {
+        return 0;
+    }
+
+    if (*str == '-') {
+        str++;
+    }
+
+    while (*str) {
+        if (!isdigit(*str)) {
+            return 0;
+        }
+        str++;
+    }
+
+    return 1;
 }

@@ -29,7 +29,7 @@ void init_epoll_server() {
 }
 
 
-void *run_event_loop(void *arg) {
+void *run_event_loop() {
     Context *ctx = get_context();
 
     while (1) {
@@ -54,7 +54,7 @@ void *run_event_loop(void *arg) {
                     ctx->server_fd,
                     ctx->epoll_fd,
                     &ctx->address,
-                    (socklen_t *)ctx->addrlen
+                    (socklen_t *)&ctx->addrlen
                 );
             }
             

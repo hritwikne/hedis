@@ -2,6 +2,7 @@
 #define GLOBAL_INCLUDES_H
 
 #include <time.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>

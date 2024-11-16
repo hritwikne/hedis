@@ -112,7 +112,7 @@ void deallocate(void *ptr) {
     pthread_mutex_unlock(&mem_pool_mutex);
 }
 
-void* compact_memory(void *arg) {
+void* compact_memory() {
     char *r = memory_pool;
     char *w = memory_pool;
 
@@ -136,6 +136,7 @@ void* compact_memory(void *arg) {
     free_list_head->in_use = 0;
     free_list_head->next = NULL;
     free_list_head->size = r - w - sizeof(Block);
+    return NULL;
 }
 
 void cleanup_allocator() {

@@ -1,99 +1,67 @@
 #include "../include/resp.h"
 
+void print_command(char *command, char **args, int arg_count) {
+    printf("Command: %s ", command);
+    for (int i = 0; i < arg_count; i++) {
+        printf("%s ", args[i]);
+    }
+    printf("\n");
+}
+
+void free_command_and_args(char *command, char **args, int arg_count) {
+    free(command);
+    for (int i = 0; i < arg_count; i++) {
+        free(args[i]);
+    }
+}
+
 char* handle_array(char* ptr) {
+    char *res = "-ERR unknown error\r\n";
+
     int array_len = atoi(ptr);
     ptr = strstr(ptr, "\r\n") + 2;
 
     char *command = NULL;
-    char *args[array_len - 1];
     int arg_index = 0;
+    char *args[array_len - 1];
 
+    // extract out tokens into command and args[]
     for (int i = 0; i < array_len; i++) {
         if (*ptr != '$') continue;
 
         int length = atoi(ptr + 1);
         ptr = strstr(ptr, "\r\n") + 2;
 
-
-        char element[length + 1];
-        strncpy(element, ptr, length);
-        element[length] = '\0';
+        char token[length + 1];
+        strncpy(token, ptr, length);
+        token[length] = '\0';
 
         ptr += length + 2;
         if (i == 0) {
-            command = strdup(element);
+            command = strdup(token);
+            to_uppercase(command);
         } else {
-            args[arg_index++] = strdup(element);
+            args[arg_index++] = strdup(token);
         }
     }
 
-    char *res;
     if (command != NULL) {
-        printf("Command: %s ", command);
-        for (int i = 0; i < arg_index; i++) {
-            printf("%s ", args[i]);
-        }
-        printf("\n");
+        print_command(command, args, arg_index);
         res = execute_command(command, args, arg_index);
+        free_command_and_args(command, args, arg_index);
     }
     
-    free(command);
-    for (int i = 0; i < arg_index; i++) {
-        free(args[i]);
-    }
-
     return res;
-}
-
-char* handle_bulk_string(char* ptr) {
-    int length = atoi(ptr);
-    ptr = strstr(ptr, "\r\n") + 2;
-    char bulk_string[length + 1];
-    strncpy(bulk_string, ptr, length);
-    bulk_string[length] = '\0';
-    printf("Bulk String: %s\n", bulk_string);
-}
-
-char* handle_integer(char *ptr) {
-    int value = atoi(ptr);
-    printf("Integer: %d\n", value);
-}
-
-char* handle_error(char* ptr) {
-    printf("Error: %s\n", ptr);
-}
-
-char* handle_string(char *ptr) {
-    printf("Simple String: %s\n", ptr);
 }
 
 char* parse_resp(char *input) {
     char *ptr = input;
     char prefix = *ptr++;
 
-    switch (prefix) {
-        case '+': { 
-            handle_string(ptr);
-            break;
-        }
-        case '-': {
-            handle_error(ptr);
-            break;
-        }
-        case ':': {
-            handle_integer(ptr);
-            break;
-        }
-        case '$': {
-            handle_bulk_string(ptr);
-            break;
-        }
-        case '*': {
-            return handle_array(ptr);
-        }
-        default: {
-            char *res = "What is that?\n";
-            return res;
-        }
+    if (prefix != '*') {
+        char *res = "-ERR invalid type\r\n";
+        return res;
     }
+
+    return handle_array(ptr);
 }

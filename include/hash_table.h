@@ -12,7 +12,7 @@ void destroy_ht(Hash_Table *table);
 Hash_Table* create_table(size_t size);
 void* get(Hash_Table *table, const char *key);
 int get_ttl(Hash_Table *table, const char *key);
-void ht_delete(Hash_Table *table, const char *key);
+int ht_delete(Hash_Table *table, const char *key);
 int set_ttl(Hash_Table *table, const char *key, int seconds);
 void ht_insert(Hash_Table *table, const char *key, void *value);
 

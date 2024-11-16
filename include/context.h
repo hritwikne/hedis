@@ -1,11 +1,9 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
-#define MAX_EVENTS 10
-
+#include "constants.h"
 #include "global_includes.h"
-#include "hash_table.h"
-#include "priority_queue.h"
+#include "data_structures.h"
 
 typedef struct {
     int epoll_fd;
@@ -24,6 +22,12 @@ typedef struct {
     Hash_Table *table;
     Priority_Queue *ttl_pq;
     Priority_Queue *freq_pq;
+
+    size_t total_memory;
+    size_t used_memory;
+    size_t free_memory;
 } Context;
+
+Context* get_context();
 
 #endif

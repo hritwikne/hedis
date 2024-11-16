@@ -3,15 +3,7 @@
 
 #include "utility.h"
 #include "global_includes.h"
-
-struct Node; // forward declaration
-
-typedef struct {
-    Node **heap;
-    size_t size; // no. of elements in heap
-    size_t capacity;
-    pthread_mutex_t mutex;
-} Priority_Queue;
+#include "data_structures.h"
 
 Node* pop_pq(Priority_Queue *pq);
 Node* peek_pq(Priority_Queue *pq);

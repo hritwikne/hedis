@@ -92,7 +92,7 @@ Node* peek_pq(Priority_Queue *pq) {
 }
 
 int node_exists_pq(Priority_Queue *pq, Node *node) {
-    if (pq == NULL || node == NULL) return;
+    if (pq == NULL || node == NULL) return -1;
     lock(pq->mutex);
 
     for (size_t i=0; i < pq->size; i++) {

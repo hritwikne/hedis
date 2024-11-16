@@ -1,10 +1,3 @@
-#include <fcntl.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/epoll.h>
-#include <netinet/in.h>
-
 #include "../include/conn_handler.h"
 
 void accept_connections(int server_fd, int epoll_fd, struct sockaddr_in *address, socklen_t *addrlen) {

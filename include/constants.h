@@ -11,4 +11,10 @@
 #define MEM_POOL_SIZE_BYTES 1024 * 1024 * 1024 // ~1GB
 #define COMPACTION_INTERVAL_SECONDS 3600
 
+#define MAX_EVENTS 10
+
+// hash table
+#define INITIAL_SIZE 16
+#define LOAD_FACTOR 0.75
+
 #endif

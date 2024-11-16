@@ -1,10 +1,23 @@
-#include "priority_queue.h"
 #include "../include/hash_table.h"
 
 void heapify_pq(Priority_Queue *pq) {
     lock(pq->mutex);
     heapify(pq, 0);
     unlock(pq->mutex);
+}
+
+Node* get_node(Hash_Table *table, const char *key) {
+    unsigned int index = hash(key, table->size);
+    Node *node = table->buckets[index];
+
+    while (node) {
+        if (strcmp(node->key, key) == 0) {
+            return node;
+        }
+        node = node->next;
+    }
+
+    return NULL;
 }
 
 Hash_Table* create_table(size_t size) {
@@ -37,7 +50,8 @@ void ht_insert(Hash_Table *table, const char *key, void *value) {
         node->has_ttl = 0;
         delete_node_pq(table->ttl_pq, node);
 
-        node->value = value;
+        free(node->value);
+        node->value = strdup((char *)value);
     }
 
     // no? create the node with key and value
@@ -51,11 +65,10 @@ void ht_insert(Hash_Table *table, const char *key, void *value) {
         }
 
         new_node->key = strdup(key);
-        new_node->value = value;
+        new_node->value = strdup((char *)value);
         new_node->has_ttl = 0;
         new_node->freq = 0;
         new_node->next = table->buckets[index];
-
         push_pq(table->freq_pq, new_node);
         
         table->buckets[index] = new_node;
@@ -63,20 +76,6 @@ void ht_insert(Hash_Table *table, const char *key, void *value) {
     }
 
     unlock(table->mutex);
-}
-
-Node* get_node(Hash_Table *table, const char *key) {
-    unsigned int index = hash(key, table->size);
-    Node *node = table->buckets[index];
-
-    while (node) {
-        if (strcmp(node->key, key) == 0) {
-            return node;
-        }
-        node = node->next;
-    }
-
-    return NULL;
 }
 
 int is_expired(Node *node) {  

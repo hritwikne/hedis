@@ -4,9 +4,24 @@ static Block *free_list_head = NULL;
 static char memory_pool[MEM_POOL_SIZE_BYTES];
 static pthread_mutex_t mem_pool_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void init_allocator() {
+void print_memory_map() {
+    char *ptr = memory_pool;
+    while (ptr < memory_pool + MEM_POOL_SIZE_BYTES) {
+        Block *block = (Block *)ptr;
+        printf("Block at %p, size: %zu, in_use: %d, next: %p\n", 
+            block, 
+            block->size, 
+            block->in_use, 
+            block->next
+        );
+        ptr += sizeof(Block) + block->size;
+    }
+}
+
+void init_mem_allocator() {
     free_list_head = (Block*)memory_pool;
     free_list_head->size = (MEM_POOL_SIZE_BYTES - sizeof(Block));
+    free_list_head->in_use = 0;
     free_list_head->next = NULL;
 }
 
@@ -32,7 +47,7 @@ void merge_adjacent_free_blocks() {
     }
 }
 
-void* allocate(size_t size) {
+void* allocate(size_t size, void** caller_ptr) {
     size = align(size);
     pthread_mutex_lock(&mem_pool_mutex);
     
@@ -55,6 +70,10 @@ void* allocate(size_t size) {
 
             block->size = size;
             block->next = new_block;
+
+            if (free_list_head == block) {
+                free_list_head = new_block;
+            }
         }
 
         // no? then use the entire block
@@ -66,7 +85,11 @@ void* allocate(size_t size) {
             }
         }
 
+        block->in_use = 1;
+        block->caller_ptr = caller_ptr;
+
         // return pointer to the usable memory region, skipping metadata part
+        pthread_mutex_unlock(&mem_pool_mutex);
         return (char*)block + sizeof(Block);
     }
 
@@ -80,6 +103,8 @@ void deallocate(void *ptr) {
     pthread_mutex_lock(&mem_pool_mutex);
 
     Block *block = (Block*)((char*)ptr - sizeof(Block));
+    block->in_use = 0;
+    block->caller_ptr = NULL;
     block->next = free_list_head;
     free_list_head = block;
 
@@ -87,37 +112,30 @@ void deallocate(void *ptr) {
     pthread_mutex_unlock(&mem_pool_mutex);
 }
 
-// YET TO IMPLEMENT
-void* reallocate(void *ptr, size_t size) {
-    return NULL;
-}
+void* compact_memory(void *arg) {
+    char *r = memory_pool;
+    char *w = memory_pool;
 
-void *compact_memory(void *arg) {
-    while (1) {
-        sleep(COMPACTION_INTERVAL_SECONDS);
-        pthread_mutex_lock(&mem_pool_mutex);
+    while (r < (memory_pool + 1024)) {
+        Block *current = (Block *) r;
+        r += sizeof(Block) + current->size;
 
-        char *current = memory_pool;
-        Block *free_block = free_list_head;
-
-        // move all free blocks to start of mem pool
-        while (free_block) {
-            if ((char*)free_block != current) {
-                memmove(current, free_block, sizeof(Block) + free_block->size);
-                free_block = (Block*)current;
+        if (current->in_use == 1) {
+            if ((char *)current != w) {
+                memmove(w, current, sizeof(Block) + current->size);
             }
 
-            current += (sizeof(Block) + free_block->size);
-            free_block = free_block->next;
+            Block *new = (Block *)w;
+            w += sizeof(Block) + new->size;
+
+            *new->caller_ptr = (char *)new + sizeof(Block); 
         }
-
-        free_list_head = (Block*)memory_pool;
-        merge_adjacent_free_blocks();
-
-        pthread_mutex_unlock(&mem_pool_mutex);
     }
 
-    return NULL;
+    free_list_head = (Block *) w;
+    free_list_head->in_use = 0;
+    free_list_head->next = NULL;
+    free_list_head->size = r - w - sizeof(Block);
 }
 
 void cleanup_allocator() {

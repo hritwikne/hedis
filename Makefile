@@ -7,7 +7,7 @@ LDFLAGS = -lpthread        # Link with pthread library
 TARGET = bin/single_threaded_1
 
 # Source and object files
-SRC = src/main.c src/server.c utils/socket.c src/event_loop.c src/conn_handler.c src/msg_handler.c src/sig_handler.c
+SRC = src/commands.c src/conn_handler.c src/event_loop.c src/main.c src/msg_handler.c src/resp.c src/server.c src/sig_handler.c utils/hash_table.c utils/mem_utils.c utils/priority_queue.c utils/socket.c utils/utility.c
 OBJ = $(SRC:src/%.c=obj/%.o)
 
 # Build the target

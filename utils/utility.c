@@ -25,3 +25,11 @@ void swap_nodes(Node *node1, Node *node2) {
     node1 = node2;
     node2 = temp;
 }
+
+void spawn_thread(pthread_t thread, void *worker) {
+    int thread_creation_res = pthread_create(&thread, NULL, worker, NULL);
+    if (thread_creation_res < 0) {
+        perror("Failed to spawn a thread.");
+        exit(EXIT_FAILURE);
+    }
+}

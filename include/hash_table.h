@@ -3,35 +3,9 @@
 
 #include "utility.h"
 #include "constants.h"
+#include "priority_queue.h"
 #include "global_includes.h"
-
-struct Priority_Queue; // forward declaration
-
-#define INITIAL_SIZE 16
-#define LOAD_FACTOR 0.75
-
-typedef struct {
-    char *key;
-    void *value;
-    struct Node *next; // for chaining
-    
-    time_t ttl;
-    
-    int freq;
-    int has_ttl;
-} Node;
-
-
-typedef struct {
-    pthread_mutex_t mutex;
-
-    Priority_Queue *ttl_pq;
-    Priority_Queue *freq_pq;
-    
-    Node **buckets;
-    size_t size;
-    size_t count;
-} Hash_Table;
+#include "data_structures.h"
 
 void* expiry_monitor(void *arg);
 void destroy_ht(Hash_Table *table);

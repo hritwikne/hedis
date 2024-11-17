@@ -35,14 +35,8 @@ void accept_messages(int client_fd) {
     buffer[bytes_read] = '\0';
     unescape_buffer(buffer);
 
-    printf("Received msg from Client %d.\n", client_fd);
+    printf("\nReceived msg from Client %d.\n", client_fd);
     char *res = parse_resp(buffer);
-
-    if (strcmp(res, "QUIT") == 0) {
-        printf("Client %d requested to quit; Disconnecting..\n", client_fd);
-        close(client_fd);
-        return;
-    }
 
     send(client_fd, res, strlen(res), 0);
     return;

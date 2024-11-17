@@ -124,6 +124,7 @@ void* get(Hash_Table *table, const char *key) {
     lock(table->mutex);
 
     Node *node = get_node(table, key);
+
     if (node == NULL) {
         unlock(table->mutex);
         return NULL;  // Key not found

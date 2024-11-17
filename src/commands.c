@@ -1,8 +1,8 @@
 #include "../include/commands.h"
 
 char* execute_command(char *command, char **args, int arg_count) {
-    Context *ctx = get_context();
     char *res = NULL;
+    Context *ctx = get_context();
     
     if (strcmp(command, "PING") == 0) {
         res = "+PONG\r\n";
@@ -10,7 +10,7 @@ char* execute_command(char *command, char **args, int arg_count) {
     } 
 
     else if (strcmp(command, "HELP") == 0) {
-        res = "$60\r\nCommands: PING, SET, GET, DEL, EXPIRE, INCR, DECR, TTL, MGET\r\n";
+        res = "$66\r\nCommands: PING, EXIT, SET, GET, DEL, EXPIRE, INCR, DECR, TTL, MGET\r\n";
         return res;
     }
     
@@ -34,12 +34,22 @@ char* execute_command(char *command, char **args, int arg_count) {
         }
 
         char *key = args[0];
-        void *value = get(ctx->table, key);
+        char *value = get(ctx->table, key);
+        
         if (value) {
-        // TODO, change this to: asprintf(&res, "$%zu\r\n%s\r\n", strlen(value), value);
-            res = (char *)value;
+            char *temp;
+            if (is_valid_integer(value)) {
+                asprintf(&temp, ":%s\r\n", value);
+            } else {
+                asprintf(&temp, "$%zu\r\n%s\r\n", strlen(value), value);
+            }
+            // TODO
+            // res = strncpy(res, temp, strlen(temp));
+            res = temp; // not right, should free
+        } else {
+            res = "$-1\r\n";
         }
-        else res = "$-1\r\n";
+
         return res;
     }
 

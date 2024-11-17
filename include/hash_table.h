@@ -3,6 +3,7 @@
 
 #include "utility.h"
 #include "constants.h"
+#include "sig_handler.h"
 #include "priority_queue.h"
 #include "global_includes.h"
 #include "data_structures.h"

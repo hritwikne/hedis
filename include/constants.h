@@ -1,20 +1,22 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+// Networking
 #define PORT 3000
-
-#define HASH_TABLE_SIZE 100
-#define INIT_PQ_CAPACITY 20
-
-#define EXPIRY_MONITOR_INTERVAL_SECONDS 1800 // 30 mins
-
-#define MEM_POOL_SIZE_BYTES 1024 * 1024 * 1024 // ~1GB
-#define COMPACTION_INTERVAL_SECONDS 3600
-
 #define MAX_EVENTS 10
 
-// hash table
-#define INITIAL_SIZE 16
+// Hash Table
+#define HASH_TABLE_SIZE 100
 #define LOAD_FACTOR 0.75
+
+// Priority Queue
+#define INIT_PQ_CAPACITY 20
+
+// Memory
+#define MEM_POOL_SIZE_BYTES 1024 * 1024 * 1024 // ~1GB
+
+// Timers
+#define EXPIRY_MONITOR_INTERVAL_SECONDS 1800 // 30 mins
+#define COMPACTION_INTERVAL_SECONDS 3600 // 1hr
 
 #endif

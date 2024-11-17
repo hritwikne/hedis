@@ -12,10 +12,10 @@ typedef struct Block {
     int in_use;
 } Block;
 
-void *compact_memory();
+void* compact_memory();
 void cleanup_allocator();
 void init_mem_allocator();
 void deallocate(void *ptr);
-void *allocate(size_t size, void** caller_ptr);
+void* allocate(size_t size, void** caller_ptr);
 
 #endif

@@ -29,7 +29,7 @@ void init_epoll_server() {
 }
 
 
-void *run_event_loop() {
+void* run_event_loop() {
     Context *ctx = get_context();
 
     while (1) {
@@ -43,7 +43,8 @@ void *run_event_loop() {
         if (num_events < 0) {
             perror("epoll_wait failed");
             exit(EXIT_FAILURE);
-        } else if (num_events == 0 && ctx->terminate_sig == 1) {
+        } 
+        else if (num_events == 0 && ctx->terminate_sig == 1) {
             break;
         }
 

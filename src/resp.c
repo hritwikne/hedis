@@ -16,7 +16,7 @@ void free_command_and_args(char *command, char **args, int arg_count) {
 }
 
 char* handle_array(char* ptr) {
-    char *res = "-ERR unknown error\r\n";
+    char *res = NULL;
 
     int array_len = atoi(ptr);
     ptr = strstr(ptr, "\r\n") + 2;
@@ -49,6 +49,8 @@ char* handle_array(char* ptr) {
         print_command(command, args, arg_index);
         res = execute_command(command, args, arg_index);
         free_command_and_args(command, args, arg_index);
+    } else {
+        res = strdup("-ERR unknown error\r\n");
     }
     
     return res;
@@ -59,8 +61,7 @@ char* parse_resp(char *input) {
     char prefix = *ptr++;
 
     if (prefix != '*') {
-        char *res = "-ERR invalid type\r\n";
-        return res;
+        return strdup("-ERR invalid type\r\n");
     }
 
     return handle_array(ptr);

@@ -31,6 +31,6 @@ void accept_connections(int server_fd, int epoll_fd, struct sockaddr_in *address
 
     printf("Client %d connected.\n", client_fd);
     
-    char *welcome_res = "\nHEDIS v0.1\nType HELP to get a list of supported commands.\n";
+    char *welcome_res = "\nHEDIS v1.0\nType HELP to get a list of supported commands.\n";
     send(client_fd, welcome_res, strlen(welcome_res), 0);
 }

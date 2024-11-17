@@ -61,3 +61,11 @@ int is_valid_integer(const char *str) {
 
     return 1;
 }
+
+char *mystrdup(const char *s) {
+    char *dup = malloc(strlen(s) + 1);
+    if (dup) {
+        strcpy(dup, s);
+    }
+    return dup;
+}

@@ -25,7 +25,7 @@ Hash_Table* create_table(size_t size) {
 
     if (table == NULL) {
         perror("Failed to allocate memory for Hash_Table");
-        exit(EXIT_FAILURE);
+        handle_sigint(1);
     }
 
     table->count = 0;
@@ -61,7 +61,7 @@ void ht_insert(Hash_Table *table, const char *key, void *value) {
 
         if (new_node == NULL) {
             perror("Failed to allocate memory for Node in Hash Table");
-            exit(EXIT_FAILURE);
+            handle_sigint(1);
         }
 
         new_node->key = strdup(key);
@@ -106,7 +106,7 @@ int ht_delete(Hash_Table *table, const char *key) {
         } else {
             table->buckets[index] = node->next;
         }
-
+        
         free(node->key);
         free(node->value);
         free(node);
@@ -203,7 +203,7 @@ int get_ttl(Hash_Table *table, const char *key) {
     unlock(table->mutex);
 
     heapify_pq(table->freq_pq);
-    return node->ttl;
+    return node->ttl - time(NULL);
 }
 
 void destroy_ht(Hash_Table *table) {
@@ -216,6 +216,7 @@ void destroy_ht(Hash_Table *table) {
         while (current != NULL) {
             Node *next_node = current->next;
             free(current->key);
+            free(current->value);
             free(current);
             current = next_node;
         }

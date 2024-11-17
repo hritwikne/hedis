@@ -1,15 +1,7 @@
-#include "../include/socket.h"
 #include "../include/server.h"
-#include "../include/context.h"
-#include "../include/mem_utils.h"
-#include "../include/event_loop.h"
-#include "../include/hash_table.h"
-#include "../include/sig_handler.h"
-#include "../include/utility.h"
-
 
 void print_startup_info(int port) {
-    printf("\nHEDIS v0.1\n");
+    printf("\nHEDIS v1.0\n");
     printf("Listening on port %d..\n", port);
     printf(
         "Press Ctrl+C once to exit.\n"
@@ -37,8 +29,8 @@ void start_server(int port) {
     spawn_thread(&ctx->compaction_thread, compact_memory);
 
     // register signal handlers for interrupts/crashes    
-    signal(SIGINT, handle_sigint);
-    signal(SIGSEGV, handle_sigsegv);
+    signal(SIGINT, handle_sigint); // for ctrl+c
+    signal(SIGSEGV, handle_sigsegv); // for seg faults
 
     print_startup_info(port);
 

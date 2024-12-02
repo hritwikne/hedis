@@ -89,11 +89,13 @@ void* allocate(size_t size, void** caller_ptr) {
         block->caller_ptr = caller_ptr;
 
         // return pointer to the usable memory region, skipping metadata part
+        print_memory_map();
         pthread_mutex_unlock(&mem_pool_mutex);
         return (char*)block + sizeof(Block);
     }
 
     // no suitable block found
+    print_memory_map();
     pthread_mutex_unlock(&mem_pool_mutex);
     return NULL;
 }
@@ -109,33 +111,44 @@ void deallocate(void *ptr) {
     free_list_head = block;
 
     merge_adjacent_free_blocks();
+    print_memory_map();
     pthread_mutex_unlock(&mem_pool_mutex);
 }
 
 void* compact_memory() {
-    char *r = memory_pool;
-    char *w = memory_pool;
+    while (1) {
+        sleep(COMPACTION_INTERVAL_SECONDS);
+        printf("-Waking compaction-\n");
+        lock(mem_pool_mutex);
 
-    while (r < (memory_pool + 1024)) {
-        Block *current = (Block *) r;
-        r += sizeof(Block) + current->size;
+        char *r = memory_pool;
+        char *w = memory_pool;
 
-        if (current->in_use == 1) {
-            if ((char *)current != w) {
-                memmove(w, current, sizeof(Block) + current->size);
+        while (r < (memory_pool + 1024)) {
+            Block *current = (Block *) r;
+            r += sizeof(Block) + current->size;
+
+            if (current->in_use == 1) {
+                if ((char *)current != w) {
+                    memmove(w, current, sizeof(Block) + current->size);
+                }
+
+                Block *new = (Block *)w;
+                w += sizeof(Block) + new->size;
+
+                *new->caller_ptr = (char *)new + sizeof(Block); 
             }
-
-            Block *new = (Block *)w;
-            w += sizeof(Block) + new->size;
-
-            *new->caller_ptr = (char *)new + sizeof(Block); 
         }
+
+        free_list_head = (Block *) w;
+        free_list_head->in_use = 0;
+        free_list_head->next = NULL;
+        free_list_head->size = r - w - sizeof(Block);
+        print_memory_map();
+        unlock(mem_pool_mutex);
+        printf("-Sleeping compaction-\n");
     }
 
-    free_list_head = (Block *) w;
-    free_list_head->in_use = 0;
-    free_list_head->next = NULL;
-    free_list_head->size = r - w - sizeof(Block);
     return NULL;
 }
 

@@ -24,9 +24,9 @@ void start_server(int port) {
 
     ctx->table = create_table(HASH_TABLE_SIZE);
     
-    spawn_thread(&ctx->event_loop_thread, run_event_loop);
-    spawn_thread(&ctx->expiry_monitor_thread, expiry_monitor);
-    spawn_thread(&ctx->compaction_thread, compact_memory);
+    spawn_thread(&ctx->event_loop_thread, run_event_loop, NULL);
+    spawn_thread(&ctx->expiry_monitor_thread, expiry_monitor, ctx->table);
+    spawn_thread(&ctx->compaction_thread, compact_memory, NULL);
 
     // register signal handlers for interrupts/crashes    
     signal(SIGINT, handle_sigint); // for ctrl+c

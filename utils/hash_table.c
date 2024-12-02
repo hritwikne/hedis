@@ -238,6 +238,7 @@ void* expiry_monitor(void *arg) {
     
     while (1) {
         sleep(EXPIRY_MONITOR_INTERVAL_SECONDS); 
+        printf("-Waking expiry monitor-\n");
         lock(table->mutex);
 
         // Check if the top item in the TTL priority queue is expired
@@ -249,6 +250,7 @@ void* expiry_monitor(void *arg) {
             }
         }
 
+        printf("-Sleeping expiry monitor-\n");
         unlock(table->mutex);
     }
 

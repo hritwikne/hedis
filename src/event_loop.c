@@ -30,6 +30,7 @@ void init_epoll_server() {
 
 
 void* run_event_loop() {
+    printf("-Running event loop-\n");
     Context *ctx = get_context();
 
     while (1) {
@@ -67,5 +68,6 @@ void* run_event_loop() {
         }
     }
     
+    printf("-Exiting event loop-\n");
     return NULL;
 }

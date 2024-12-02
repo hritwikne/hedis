@@ -1,6 +1,7 @@
 #ifndef MEM_UTILS_H
 #define MEM_UTILS_H
 
+#include "utility.h"
 #include "context.h"
 #include "constants.h"
 #include "global_includes.h"

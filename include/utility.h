@@ -10,6 +10,6 @@ void unlock(pthread_mutex_t mutex);
 int is_valid_integer(const char *str);
 void swap_nodes(Node *node1, Node *node2);
 unsigned int hash(const char *key, size_t size);
-void spawn_thread(pthread_t *thread, void *worker);
+void spawn_thread(pthread_t *thread, void *worker, void *arg);
 
 #endif

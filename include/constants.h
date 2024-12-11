@@ -13,7 +13,7 @@
 #define INIT_PQ_CAPACITY 20
 
 // Memory
-#define MEM_POOL_SIZE_BYTES 1024 * 1024 * 1024 // ~1GB
+#define MEM_POOL_SIZE_BYTES 100 * 1024 // ~100KB
 
 // Timers
 #define EXPIRY_MONITOR_INTERVAL_SECONDS 1800 // 30 mins

@@ -63,7 +63,7 @@ int is_valid_integer(const char *str) {
 }
 
 char *mystrdup(const char *s) {
-    char *dup = malloc(strlen(s) + 1);
+    char *dup = allocate(strlen(s) + 1, (void**)&dup);
     if (dup) {
         strcpy(dup, s);
     }

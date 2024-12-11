@@ -1,11 +1,11 @@
 #include "../include/priority_queue.h"
 
 Priority_Queue* create_pq(size_t initial_capacity) {
-    Priority_Queue *pq = malloc(sizeof(Priority_Queue));
+    Priority_Queue *pq = allocate(sizeof(Priority_Queue), (void**)&pq);
     
     pq->size = 0;
     pq->capacity = initial_capacity;
-    pq->heap = malloc(initial_capacity * sizeof(Priority_Queue *));
+    pq->heap = allocate(initial_capacity * sizeof(Priority_Queue *), (void**)&pq->heap);
     pthread_mutex_init(&pq->mutex, NULL);
 
     return pq;
@@ -15,8 +15,8 @@ void destroy_pq(Priority_Queue *pq) {
     if (pq == NULL) return;
     
     pthread_mutex_destroy(&pq->mutex);
-    free(pq->heap);
-    free(pq);
+    deallocate(pq->heap);
+    deallocate(pq);
 }
 
 void heapify(Priority_Queue *pq, size_t index) {

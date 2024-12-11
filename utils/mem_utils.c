@@ -5,6 +5,7 @@ static char memory_pool[MEM_POOL_SIZE_BYTES];
 static pthread_mutex_t mem_pool_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void print_memory_map() {
+    return; // comment this if mem map should be printed
     char *ptr = memory_pool;
     while (ptr < memory_pool + MEM_POOL_SIZE_BYTES) {
         Block *block = (Block *)ptr;
@@ -23,6 +24,10 @@ void init_mem_allocator() {
     free_list_head->size = (MEM_POOL_SIZE_BYTES - sizeof(Block));
     free_list_head->in_use = 0;
     free_list_head->next = NULL;
+
+    MemoryStats *mem = get_mem_stats();
+    mem->free_memory = MEM_POOL_SIZE_BYTES;
+    mem->total_memory = MEM_POOL_SIZE_BYTES;
 }
 
 // Align size to the nearest multiple of 8 bytes
@@ -88,9 +93,16 @@ void* allocate(size_t size, void** caller_ptr) {
         block->in_use = 1;
         block->caller_ptr = caller_ptr;
 
-        // return pointer to the usable memory region, skipping metadata part
+        size_t total_size = (size + sizeof(Block));
+        MemoryStats *mem = get_mem_stats();
+
+        mem->used_memory += total_size;
+        mem->free_memory -= total_size;
+
         print_memory_map();
         pthread_mutex_unlock(&mem_pool_mutex);
+        
+        // return pointer to the usable memory region, skipping metadata part
         return (char*)block + sizeof(Block);
     }
 
@@ -100,15 +112,39 @@ void* allocate(size_t size, void** caller_ptr) {
     return NULL;
 }
 
+void* callocate(size_t num, size_t size, void** caller_ptr) {
+    // Calculate total size to allocate
+    size_t total_size = num * size;
+
+    // Check for overflow in multiplication
+    if (num != 0 && total_size / num != size) {
+        return NULL;
+    }
+
+    void* memory = allocate(total_size, caller_ptr);
+
+    if (memory) {
+        memset(memory, 0, total_size);
+    }
+
+    return memory;
+}
+
 void deallocate(void *ptr) {
     if (!ptr) return;
     pthread_mutex_lock(&mem_pool_mutex);
 
     Block *block = (Block*)((char*)ptr - sizeof(Block));
+    size_t total_size = (block->size + sizeof(Block));
+
     block->in_use = 0;
     block->caller_ptr = NULL;
     block->next = free_list_head;
     free_list_head = block;
+
+    MemoryStats *mem = get_mem_stats();
+    mem->free_memory += total_size;
+    mem->used_memory -= total_size;
 
     merge_adjacent_free_blocks();
     print_memory_map();

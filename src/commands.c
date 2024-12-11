@@ -8,7 +8,7 @@ char* execute_command(char *command, char **args, int arg_count) {
     } 
 
     else if (strcmp(command, "HELP") == 0) {
-        return strdup("$60\r\nCommands: PING, EXIT, SET, GET, DEL, EXPIRE, INCR, DECR, TTL\r\n");
+        return strdup("$70\r\nCommands: PING, EXIT, SET, GET, DEL, EXPIRE, INCR, DECR, TTL, MEMSTATS\r\n");
     }
     
     else if (strcmp(command, "SET") == 0) {
@@ -124,6 +124,26 @@ char* execute_command(char *command, char **args, int arg_count) {
         else {
             return strdup("-ERR invalid key\r\n");
         }
+    }
+
+    else if(strcmp(command, "MEMSTATS") == 0) {
+        if (arg_count > 0) {
+            return strdup("-ERR wrong number of arguments for that command\r\n");
+        }
+
+        MemoryStats *mem = get_mem_stats();
+        double total_mem = mem->total_memory / (1024.0);
+        double used_mem = mem->used_memory / (1024.0);
+        double free_mem = mem->free_memory / (1024.0);
+
+        char *res_str = NULL;
+        char *bulk_str = NULL;
+
+        asprintf(&res_str, "Total: %.2f KB, Used: %.2f KB, Free: %.2f KB", total_mem, used_mem, free_mem);
+        asprintf(&bulk_str, "$%zu\r\n%s\r\n", strlen(res_str), res_str);
+
+        free(res_str);
+        return bulk_str;
     }
 
     else {

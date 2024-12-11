@@ -22,12 +22,15 @@ typedef struct {
     Hash_Table *table;
     Priority_Queue *ttl_pq;
     Priority_Queue *freq_pq;
+} Context;
 
+typedef struct {
     size_t total_memory;
     size_t used_memory;
     size_t free_memory;
-} Context;
+} MemoryStats;
 
 Context* get_context();
+MemoryStats* get_mem_stats();
 
 #endif

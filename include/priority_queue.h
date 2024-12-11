@@ -2,6 +2,7 @@
 #define PRIORITY_QUEUE_H
 
 #include "utility.h"
+#include "mem_utils.h"
 #include "global_includes.h"
 #include "data_structures.h"
 

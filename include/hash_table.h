@@ -2,6 +2,7 @@
 #define HASH_TABLE_H
 
 #include "utility.h"
+#include "mem_utils.h"
 #include "constants.h"
 #include "sig_handler.h"
 #include "priority_queue.h"

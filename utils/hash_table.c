@@ -21,7 +21,7 @@ Node* get_node(Hash_Table *table, const char *key) {
 }
 
 Hash_Table* create_table(size_t size) {
-    Hash_Table *table = malloc(sizeof(Hash_Table));
+    Hash_Table *table = allocate(sizeof(Hash_Table), (void **)&table);
 
     if (table == NULL) {
         perror("Failed to allocate memory for Hash_Table");
@@ -30,7 +30,7 @@ Hash_Table* create_table(size_t size) {
 
     table->count = 0;
     table->size = size;
-    table->buckets = calloc(table->size, sizeof(Node *));
+    table->buckets = callocate(table->size, sizeof(Node *), (void**)&table->buckets);
     pthread_mutex_init(&table->mutex, NULL);
 
     table->ttl_pq = create_pq(INIT_PQ_CAPACITY);
@@ -57,7 +57,7 @@ void ht_insert(Hash_Table *table, const char *key, void *value) {
     // no? create the node with key and value
     else {
         unsigned int index = hash(key, table->size);
-        Node *new_node = malloc(sizeof(Node));
+        Node *new_node = allocate(sizeof(Node), (void**)&new_node);
 
         if (new_node == NULL) {
             perror("Failed to allocate memory for Node in Hash Table");
@@ -109,7 +109,7 @@ int ht_delete(Hash_Table *table, const char *key) {
         
         free(node->key);
         free(node->value);
-        free(node);
+        deallocate(node);
         node = NULL;
         table->count--;
         break;
@@ -217,16 +217,16 @@ void destroy_ht(Hash_Table *table) {
             Node *next_node = current->next;
             free(current->key);
             free(current->value);
-            free(current);
+            deallocate(current);
             current = next_node;
         }
     }
 
-    free(table->buckets);
+    deallocate(table->buckets);
 
     unlock(table->mutex);
     pthread_mutex_destroy(&table->mutex);
-    free(table);
+    deallocate(table);
 }
 
 void* expiry_monitor(void *arg) {

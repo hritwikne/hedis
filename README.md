@@ -6,22 +6,47 @@ This project is a custom implementation of Redis, built entirely from scratch in
 [Link to demo video of the application](https://drive.google.com/file/d/1flIZ0zLi4oo6CFy-qwkkqdMkrfj21IRV/view?usp=sharing)
 
 ## Features
-* Built on top of TCP connection, so server and client can be in different locations
 * Single threaded in-memory key-value store
+* Built on top of TCP connection, so server and client can be in different locations
 * A custom memory allocator was built from scratch in C to prevent memory leak
 * Event loop, to service connection and message requests effectively without conflicts
 * Set time-to-live (TTL) for data for auto deletion
-* When memory is 100% utilized, least frequently used data is replaced with new data
+* When memory is 100% utilized, least frequently used data is replaced with the new data
 * Main commands: GET, SET, DEL, EXPIRE, INCR, DECR, TTL, MEMSTATS
 * Publish/Subscribe functionality **(Coming soon)**
 * AOF Disk Persistence **(Coming soon)**
 
-## Key Highlight
-A custom memory allocator was built and made use of for this project.  
+## Key Highlights
+**Multi-threaded Application Architecture**  
+
+The application utilizes a multi-threaded design with specialized threads:
+
+1. Main Thread
+    * Primary application initialization
+    * Overall coordination and control flow
+
+2. Event Loop Thread
+    * Handles client connections and message processing
+    * Single-threaded, non-blocking I/O management
+    * Services multiple client requests concurrently
+
+3. Memory Compaction Thread
+    * Prevents memory fragmentation
+    * Dynamically optimizes memory allocation
+    * Periodically reorganizes memory blocks
+
+4. Data-node Expiry Monitor Thread
+    * Manages time-to-live (TTL) for data entries
+    * Automatically handles data lifecycle management
+    * Removes expired data entries
+
+Architectural Highlight: While the event loop operates single-threaded, the overall application leverages multiple threads for efficient background processing and resource management.
+
+**A Custom Memory Allocator**
+
 Path to that file: `hedis-server/utils/mem_utils.c`
 
 A simple abstraction of how a process looks like in memory:
-
 ```
 +-------------------+
 |      Stack        | Dynamic allocation

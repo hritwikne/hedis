@@ -8,7 +8,7 @@ This project is a custom implementation of Redis, built entirely from scratch in
 ## Features
 * Implements an in-memory key-value storage system with high-performance data access
 * Utilizes TCP network protocol for distributed client-server architecture, enabling remote connectivity
-* Developed a custom memory management allocator in C to optimize memory utilization and prevent memory leaks
+* Developed a custom memory allocator in C to optimize memory utilization and prevent memory leaks
 * Employs an asynchronous event-driven architecture to efficiently handle concurrent connection and message processing
 * Supports RESP (REdis Serialization Protocol) for standardized data communication
 * Provides configurable time-to-live (TTL) mechanism for automatic data expiration and resource management
@@ -23,7 +23,6 @@ This project is a custom implementation of Redis, built entirely from scratch in
 The application utilizes a multi-threaded design with specialized threads:
 
 1. Main Thread
-    * Primary application initialization
     * Overall coordination and control flow
 
 2. Event Loop Thread
@@ -41,7 +40,7 @@ The application utilizes a multi-threaded design with specialized threads:
     * Automatically handles data lifecycle management
     * Removes expired data entries
 
-While the event loop operates single-threaded, the overall application leverages multiple threads for efficient background processing and resource management.
+While the event loop itself operates single-threaded, the overall application leverages multiple threads for efficient background processing and resource management.
 
 **A Custom Memory Allocator**
 

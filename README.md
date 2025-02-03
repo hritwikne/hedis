@@ -9,9 +9,9 @@ This project is a custom implementation of Redis, built entirely from scratch in
 * Implements an in-memory key-value storage system with high-performance data access
 * Utilizes TCP network protocol for distributed client-server architecture, enabling remote connectivity
 * Developed a custom memory allocator in C to optimize memory utilization and prevent memory leaks
-* Employs an asynchronous event-driven architecture to efficiently handle concurrent connection and message processing
+* Developed an event loop to efficiently handle concurrent connection and message processing
 * Supports RESP (REdis Serialization Protocol) for standardized data communication
-* Provides configurable time-to-live (TTL) mechanism for automatic data expiration and resource management
+* Provides configurable time-to-live (TTL) mechanism for automatic data expiration
 * Implements a replacement strategy using Least Frequently Used (LFU) algorithm when memory reaches maximum capacity
 * Command set includes data manipulation (GET, SET, DEL), key lifecycle management (EXPIRE, TTL), atomic numeric operations (INCR, DECR), memory monitoring (MEMSTATS)
 * Publish/Subscribe functionality **(Coming soon)**

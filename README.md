@@ -3,10 +3,10 @@
 ## Overview
 This project is a custom implementation of Redis, built entirely from scratch in C. It provides a subset of the original Redis features, built from ground up for educational purpose.
 
-[Link to demo video of the application](https://drive.google.com/file/d/1flIZ0zLi4oo6CFy-qwkkqdMkrfj21IRV/view?usp=sharing)
+[Link to demo video of the application](https://drive.google.com/file/d/1pCi74EVRYATfrDMu5ZdxWHYO9VReyuxQ/view?usp=sharing)
 
 ## Features
-* Single threaded in-memory key-value store
+* In-memory key-value store
 * Built on top of TCP connection, so server and client can be in different locations
 * A custom memory allocator was built from scratch in C to prevent memory leak
 * Event loop, to service connection and message requests effectively without conflicts
@@ -40,7 +40,7 @@ The application utilizes a multi-threaded design with specialized threads:
     * Automatically handles data lifecycle management
     * Removes expired data entries
 
-Architectural Highlight: While the event loop operates single-threaded, the overall application leverages multiple threads for efficient background processing and resource management.
+While the event loop operates single-threaded, the overall application leverages multiple threads for efficient background processing and resource management.
 
 **A Custom Memory Allocator**
 

@@ -12,10 +12,11 @@ This project is a custom implementation of Redis, built entirely from scratch in
 * Developed an event loop to efficiently handle concurrent client connection and message processing
 * Supports RESP (REdis Serialization Protocol) for data communication
 * Provides configurable time-to-live (TTL) mechanism for automatic data expiration
-* Implemented a replacement strategy using Least Frequently Used (LFU) algorithm when memory reaches maximum capacity
 * Command set includes data manipulation (GET, SET, DEL), data lifecycle management (EXPIRE, TTL), atomic numeric operations (INCR, DECR) and memory monitoring (MEMSTATS)
 * Publish/Subscribe functionality **(Coming soon)**
 * AOF Disk Persistence **(Coming soon)**
+* Cross-platform support **(Coming soon)**
+* Data replacement strategy when memory consumption reaches maximum utilization. **(Coming soon)**
 
 ## Key Highlights
 ### 1. Multi-threaded Application Architecture

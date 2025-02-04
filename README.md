@@ -9,8 +9,8 @@ This project is a custom implementation of Redis, built entirely from scratch in
 * Implemented an in-memory key-value storage system with high-performance data access
 * Utilized TCP network protocol for distributed client-server architecture, enabling remote connectivity
 * Developed a custom memory allocator in C to optimize memory utilization and prevent memory leaks
-* Developed an event loop to efficiently handle concurrent connection and message processing
-* Supports RESP (REdis Serialization Protocol) for standardized data communication
+* Developed an event loop to efficiently handle concurrent client connection and message processing
+* Supports RESP (REdis Serialization Protocol) for data communication
 * Provides configurable time-to-live (TTL) mechanism for automatic data expiration
 * Implemented a replacement strategy using Least Frequently Used (LFU) algorithm when memory reaches maximum capacity
 * Command set includes data manipulation (GET, SET, DEL), data lifecycle management (EXPIRE, TTL), atomic numeric operations (INCR, DECR) and memory monitoring (MEMSTATS)
@@ -18,7 +18,7 @@ This project is a custom implementation of Redis, built entirely from scratch in
 * AOF Disk Persistence **(Coming soon)**
 
 ## Key Highlights
-### Multi-threaded Application Architecture
+### 1. Multi-threaded Application Architecture
 
 The application utilizes a multi-threaded design with specialized threads:
 
@@ -39,22 +39,22 @@ The application utilizes a multi-threaded design with specialized threads:
 
 While the event loop itself operates single-threaded, the overall application leverages multiple threads for efficient background processing and resource management.
 
-### A Custom Memory Allocator
+### 2. A Custom Memory Allocator
 
 Path to that file: `hedis-server/utils/mem_utils.c`
 
 A simple abstraction of how a process looks like in memory:
 ```
 +-------------------+
-|      Stack        | Dynamic allocation
-|                   | Grows downward
+|      Stack        | For fixed size allocation
+|                   | 
 +-------------------+
 |       Heap        | Dynamic memory
 |                   | Allocations/deallocations
 +-------------------+
 |   BSS Segment     | Uninitialized global/static vars
 +-------------------+
-|  Data Segment     | Initialized global/static vars
+|  Data Segment     | Initialized global/static vars 
 +-------------------+
 | Text/Code Segment | Read-only executable instructions
 +-------------------+
@@ -96,7 +96,7 @@ You can skip this step and go straight to the next section if you don't want to 
     cd hedis-cli
     make
     ```
-Compilation generates executables hedis-server and hedis-cli in respective bin/ directories.
+Compilation generates executables `hedis-server` and `hedis-cli` in respective `bin/` directories.
 
 ## Usage:
 1. Start server:
@@ -110,9 +110,9 @@ Compilation generates executables hedis-server and hedis-cli in respective bin/ 
     ./hedis-cli [HOST] [PORT]
     ```
 where HOST and PORT are the address and port number of the server respectively.  
-Default host: `127.0.0.1` and Deafult port: `3000`.  
+Default host: `127.0.0.1` and deafult port: `3000`.  
 
-**Note:** If no host or port specified, client connects to `127.0.0.1:3000`
+**Note:** If no host or port is specified, client connects to `127.0.0.1:3000`
 
 Example usage:
 ```

@@ -6,19 +6,19 @@ This project is a custom implementation of Redis, built entirely from scratch in
 [Link to demo video of the application](https://drive.google.com/file/d/1pCi74EVRYATfrDMu5ZdxWHYO9VReyuxQ/view?usp=sharing)
 
 ## Features
-* Implements an in-memory key-value storage system with high-performance data access
-* Utilizes TCP network protocol for distributed client-server architecture, enabling remote connectivity
+* Implemented an in-memory key-value storage system with high-performance data access
+* Utilized TCP network protocol for distributed client-server architecture, enabling remote connectivity
 * Developed a custom memory allocator in C to optimize memory utilization and prevent memory leaks
 * Developed an event loop to efficiently handle concurrent connection and message processing
 * Supports RESP (REdis Serialization Protocol) for standardized data communication
 * Provides configurable time-to-live (TTL) mechanism for automatic data expiration
-* Implements a replacement strategy using Least Frequently Used (LFU) algorithm when memory reaches maximum capacity
-* Command set includes data manipulation (GET, SET, DEL), key lifecycle management (EXPIRE, TTL), atomic numeric operations (INCR, DECR), memory monitoring (MEMSTATS)
+* Implemented a replacement strategy using Least Frequently Used (LFU) algorithm when memory reaches maximum capacity
+* Command set includes data manipulation (GET, SET, DEL), data lifecycle management (EXPIRE, TTL), atomic numeric operations (INCR, DECR) and memory monitoring (MEMSTATS)
 * Publish/Subscribe functionality **(Coming soon)**
 * AOF Disk Persistence **(Coming soon)**
 
 ## Key Highlights
-**Multi-threaded Application Architecture**  
+### Multi-threaded Application Architecture
 
 The application utilizes a multi-threaded design with specialized threads:
 
@@ -26,23 +26,20 @@ The application utilizes a multi-threaded design with specialized threads:
     * Overall coordination and control flow
 
 2. Event Loop Thread
-    * Handles client connections and message processing
     * Single-threaded, non-blocking I/O management
-    * Services multiple client requests concurrently
+    * Handles multiple client connection requests concurrently and message processing
 
 3. Memory Compaction Thread
     * Prevents memory fragmentation
     * Dynamically optimizes memory allocation
-    * Periodically reorganizes memory blocks
 
 4. Data-node Expiry Monitor Thread
-    * Manages time-to-live (TTL) for data entries
     * Automatically handles data lifecycle management
     * Removes expired data entries
 
 While the event loop itself operates single-threaded, the overall application leverages multiple threads for efficient background processing and resource management.
 
-**A Custom Memory Allocator**
+### A Custom Memory Allocator
 
 Path to that file: `hedis-server/utils/mem_utils.c`
 

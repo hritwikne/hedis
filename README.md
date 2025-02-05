@@ -17,6 +17,7 @@ This project is a custom implementation of Redis, built entirely from scratch in
 * AOF Disk Persistence **(Coming soon)**
 * Cross-platform support **(Coming soon)**
 * Data replacement strategy when memory consumption reaches maximum utilization. **(Coming soon)**
+* Optimized redis data structures like SDS, Ziplists, Intset etc. **(Coming soon)**
 
 ## Key Highlights
 ### 1. Multi-threaded Application Architecture
